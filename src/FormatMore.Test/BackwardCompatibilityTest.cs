@@ -32,9 +32,9 @@ namespace FormatMoreUtilities.Test
 
 		private void TestInput(string format, params object[] args) => TestInput(null, format, args);
 
-		private void TestInput(IFormatProvider provider, string format, params object[] args)
+		private void TestInput(IFormatProvider? provider, string format, params object[] args)
 		{
-			var formatResult = String.Format(provider, format, args);
+			var formatResult = string.Format(provider, format, args);
 			var formatMoreResult = FormatMore.Format(provider, format, args);
 
 			formatMoreResult.Should().Be(formatResult);

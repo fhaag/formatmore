@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2021 Florian Haag
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -93,47 +93,47 @@ namespace FormatMoreUtilities
 			public IReadOnlyDictionary<char, string[]> Options { get; }
 
 			public string MoreItemsMarker
-            {
+			{
 				get
-                {
+				{
 					if (Options.TryGetValue('m', out var values))
-                    {
+					{
 						return values[0];
-                    }
+					}
 					return "";
-                }
-            }
+				}
+			}
 
 			public string? RemainderItem
-            {
+			{
 				get
-                {
+				{
 					if (Options.TryGetValue('r', out var values))
-                    {
+					{
 						return values[0];
-                    }
+					}
 					return null;
-                }
-            }
+				}
+			}
 
 			public string EmptyPlaceholder
-            {
+			{
 				get
-                {
+				{
 					if (Options.TryGetValue('e', out var values))
-                    {
+					{
 						return values[0];
-                    }
+					}
 					return "";
-                }
-            }
+				}
+			}
 
 			private enum LengthCondition : byte
-            {
+			{
 				Equals = 0,
 				LessThan = 1,
 				GreaterThan = 2
-            }
+			}
 
 			private static IEnumerable<(int Index, LengthCondition? Condition, int? LengthConditionOperand, string Value)> ParseLengthBasedValues(IEnumerable<string> rawValues)
 				=> rawValues.Select<string, (int Index, LengthCondition? Condition, int? LengthConditionOperand, string Value)>(v =>
@@ -183,64 +183,64 @@ namespace FormatMoreUtilities
 
 				string defaultDelimiter;
 				if (Options.TryGetValue('d', out var defaultDelimiterVals))
-                {
+				{
 					defaultDelimiter = defaultDelimiterVals[0];
-                }
+				}
 				else
-                {
+				{
 					defaultDelimiter = "";
-                }
+				}
 
 				if (!Options.TryGetValue('D', out var customDelimiterVals))
-                {
+				{
 					customDelimiterVals = new string[0];
-                }
+				}
 
 				var parsedCustomDelimVals = ParseLengthBasedValues(customDelimiterVals).ToArray();
 
 				string? FindCustomDelim(int indexFromStart, int indexFromEnd)
-                {
+				{
 					for (int i = 0; i < parsedCustomDelimVals.Length; i++)
-                    {
+					{
 						var pcdv = parsedCustomDelimVals[i];
 						if (pcdv.Index == indexFromStart || pcdv.Index == indexFromEnd)
-                        {
+						{
 							if (pcdv.Condition.HasValue && pcdv.LengthConditionOperand.HasValue)
-                            {
+							{
 								switch (pcdv.Condition)
-                                {
+								{
 									case LengthCondition.Equals:
 										if (totalItemCount != pcdv.LengthConditionOperand)
-                                        {
+										{
 											continue;
-                                        }
+										}
 										break;
 									case LengthCondition.LessThan:
 										if (totalItemCount >= pcdv.LengthConditionOperand)
-                                        {
+										{
 											continue;
-                                        }
+										}
 										break;
 									case LengthCondition.GreaterThan:
 										if (totalItemCount <= pcdv.LengthConditionOperand)
-                                        {
+										{
 											continue;
-                                        }
+										}
 										break;
-                                }
-                            }
+								}
+							}
 
 							return pcdv.Value;
-                        }
-                    }
+						}
+					}
 
 					return null;
-                }
+				}
 
 				for (var i = 0; i < itemCount - 1; i++)
-                {
+				{
 					result[i] = FindCustomDelim(i, i - itemCount + 1) ?? defaultDelimiter;
-                }
+				}
 
 				return result;
 			}
@@ -336,7 +336,7 @@ namespace FormatMoreUtilities
 						preprocessedFormat.Append("{" + preprocessedArgs.Count.ToString(InvariantCulture) + "}");
 						preprocessedArgs.Add(sb.ToString());
 					}
-				} 
+				}
 				else
 				{
 					preprocessedFormat.Append(formatItem.Value);
@@ -348,7 +348,8 @@ namespace FormatMoreUtilities
 			var previousVerbatimStart = 0;
 			foreach (var match in matches.OfType<Match>())
 			{
-				if (match.Index > previousVerbatimStart) {
+				if (match.Index > previousVerbatimStart)
+				{
 					preprocessedFormat.Append(format.Substring(previousVerbatimStart, match.Index - previousVerbatimStart));
 				}
 

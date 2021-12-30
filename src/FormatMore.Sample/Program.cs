@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright (c) 2021 Florian Haag
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,44 +23,44 @@ SOFTWARE.
 using FormatMoreUtilities;
 
 {
-    var format = "{0[d + ]}";
+	var format = "{0[d + ]}";
 
-    Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2 } }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4 } }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4, 8, 16 } }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2 } }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4 } }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4, 8, 16 } }));
 }
 
 {
-    var format = "{0[3|d;|m...]}";
+	var format = "{0[3|d;|m...]}";
 
-    Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2 } }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4 } }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4, 8, 16 } }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2 } }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4 } }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { new[] { 1, 2, 4, 8, 16 } }));
 }
 
 {
-    var format = "My pizza topping consists of {0[2|d, |rothers|D0/2= and |D-1=, and ]}.";
-    var ingredients = new[] { "tomatoes", "mushrooms", "onions", "sliced sausages", "spinach leaves" };
+	var format = "My pizza topping consists of {0[2|d, |rothers|D0/2= and |D-1=, and ]}.";
+	var ingredients = new[] { "tomatoes", "mushrooms", "onions", "sliced sausages", "spinach leaves" };
 
-    Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(1) }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(2) }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(3) }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(5) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(1) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(2) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(3) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { ingredients.Take(5) }));
 }
 
 {
-    var format = "{0[1..3|d, |D0/2= and |D-1=, and |m et al.]}";
-    (string GivenName, string Surname)[] authors =
-    {
-        ("Eddie", "Example"),
-        ("Sue", "Sample"),
-        ("Bert", "Beispiel"),
-        ("Eduardo", "Ejemplo")
-    };
-    var formattedAuthors = authors.Select(a => $"{a.GivenName[0]}. {a.Surname}");
+	var format = "{0[1..3|d, |D0/2= and |D-1=, and |m et al.]}";
+	(string GivenName, string Surname)[] authors =
+	{
+		("Eddie", "Example"),
+		("Sue", "Sample"),
+		("Bert", "Beispiel"),
+		("Eduardo", "Ejemplo")
+	};
+	var formattedAuthors = authors.Select(a => $"{a.GivenName[0]}. {a.Surname}");
 
-    Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(1) }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(2) }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(3) }));
-    Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(4) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(1) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(2) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(3) }));
+	Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(4) }));
 }

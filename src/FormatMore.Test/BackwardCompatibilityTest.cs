@@ -53,13 +53,13 @@ namespace FormatMoreUtilities.Test
 
 		[Fact]
 		public void SingleArgEnd() => TestInput("qwertz{0}", "test");
-		
+
 		[Fact]
 		public void SingleArgMultiOccurrence() => TestInput("{0}xy{0}z", 1000);
 
 		[Fact]
 		public void MultiArg() => TestInput("ab{0}c{1}xyz", 50, "X");
-		
+
 		[Fact]
 		public void MultiArgUnordered() => TestInput("ab{1}{2}abc{0}", 10, 20, 30);
 

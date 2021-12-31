@@ -167,5 +167,15 @@ namespace FormatMoreUtilities.Test
 			TestInput("f+B+...", "{0[2|d+|r...]}", new object[] { fiveLetters });
 			TestInput("f+B+e+a+V", "{0[8|d+|r...]}", new object[] { fiveLetters });
 		}
+
+		[Fact]
+		public void TestNoEnumParam()
+		{
+			Action action = () => FormatMore.Format("{0[]}", 42);
+			action.Should().Throw<FormatException>("because list formatting is requested for a non-enumerable argument");
+		}
+
+		[Fact]
+		public void TestOptionalNoEnumParam() => TestInput("42", CultureInfo.InvariantCulture, "{0[]?}", 42);
 	}
 }

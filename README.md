@@ -33,6 +33,7 @@ It is defined as follows:
 - The first argument specifies the item count. It is a positive number (e.g. `15`) or a number range of the form `2..5`. This argument is optional.
 - Any further arguments start with a single identifying character that may be followed by any number of characters.
 - It ends with a closing square bracket `]`.
+- It may be followed by an optional question mark `?` to indicate that list formatting is optional. In this case, non-enumerable argument values will be formatted as specified while ignoring the list formatting options. (Without the optional marker, applying list formatting options to non-enumerable argument values will cause a `FormatException`.)
 
 ### Item Count
 

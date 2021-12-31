@@ -35,7 +35,7 @@ namespace FormatMoreUtilities
 	public static class FormatMore
 	{
 		private static readonly Regex FormatItemPattern =
-			new Regex(@"\{(?<index>[0-9]+)(?<listFormatting>\[(?:(?<count>[0-9]+)(?:\.\.(?<maxCount>[0-9]+))?)?(?:(?:\||(?<=\[))(?<optionKey>[^|\]0-9])(?<optionValue>(?:[^|\]]|\|\||\]\])*))*\])?(?:,(?<alignment>[+-]?[0-9]+))?(?:\:(?<format>(?:[^}]|\}\})*))?\}");
+			new Regex(@"\{(?<index>[0-9]+)(?<listFormatting>\[(?:(?<count>[0-9]+)(?:\.\.(?<maxCount>[0-9]+))?)?(?:(?:\||(?<=\[))(?<optionKey>[^|\]0-9])(?<optionValue>(?:[^|\]]|\|\||\]\])*))*\](?<listModifier>\?)?)?(?:,(?<alignment>[+-]?[0-9]+))?(?:\:(?<format>(?:[^}]|\}\})*))?\}");
 
 		private static readonly Regex LengthBasedArgumentValuePattern =
 			new Regex(@"^(?<index>[+-]?[0-9]+)(?:/(?<lengthCondition>[=<>])?(?<lengthConditionOperand>[0-9]+))?\=(?<value>.*)$");
@@ -50,6 +50,12 @@ namespace FormatMoreUtilities
 				}
 
 				Index = int.Parse(source.Groups["index"].Value, InvariantCulture);
+
+				var modifierMatch = source.Groups["listModifier"];
+				if (modifierMatch.Success)
+				{
+					IsOptional = true;
+				}
 
 				var countMatch = source.Groups["count"];
 				Count = countMatch.Success ? (int?)int.Parse(countMatch.Value, InvariantCulture) : null;
@@ -89,6 +95,8 @@ namespace FormatMoreUtilities
 			public string? Alignment { get; }
 
 			public string? Format { get; }
+
+			public bool IsOptional { get; }
 
 			public IReadOnlyDictionary<char, string[]> Options { get; }
 
@@ -335,6 +343,23 @@ namespace FormatMoreUtilities
 
 						preprocessedFormat.Append("{" + preprocessedArgs.Count.ToString(InvariantCulture) + "}");
 						preprocessedArgs.Add(sb.ToString());
+					}
+					else
+					{
+						if (formatInfo.IsOptional)
+						{
+							preprocessedFormat.Append("{"
+								+ formatInfo.Index.ToString(InvariantCulture)
+								+ (formatInfo.Alignment != null ? "," + formatInfo.Alignment : "")
+								+ (formatInfo.Format != null ? ":" + formatInfo.Format : "")
+								+ "}");
+						}
+						else
+						{
+							throw new FormatException(string.Format(InvariantCulture,
+								"Argument {0} cannot be converted to {1}.",
+								formatInfo.Index, typeof(System.Collections.IEnumerable)));
+						}
 					}
 				}
 				else

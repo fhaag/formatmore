@@ -89,5 +89,11 @@ namespace FormatMoreUtilities.Test
 
 		[Fact]
 		public void SingleArgTwoAfter() => TestInput("{0}Aa", "Z");
+
+		[Fact]
+		public void EscapedOpeningBraceTest() => TestInput("{{{0}", "A");
+
+		[Fact]
+		public void EscapedClosingBraceTest() => TestInput("{0} }}", "A");
 	}
 }

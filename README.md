@@ -54,6 +54,8 @@ The following table lists additionally supported arguments along with their iden
 
 | Identifying Character | Meaning |
 | -- | -- |
+| `a` | Specifies a string that is inserted *after* each item. |
+| `b` | Specifies a string that is inserted *before* each item. |
 | `d` | Specifies the delimiter to use between items of the enumerable. |
 | `D` | Specifies an individual delimiter between items. Use *indexed values* (see below) to indicate which delimiter you would like to define, with the index referring to the delimiters between actually output items.<br />You may specify several `D` arguments to assign delimiters for different indexes. |
 | `e` | If the enumerable contains no items, the alternative text from this argument will be used instead. |
@@ -153,6 +155,16 @@ Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take
 // E. Example, S. Sample, and B. Beispiel
 Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(4) }));
 // E. Example et al.
+```
+
+### Logical Formula in DNF
+
+```
+var format = "{0[d or |b(|a)][d and ]}";
+var terms = new[] { new[] { "A", "not B", "C" }, new[] { "not A", "B", "not C", "D" } };
+
+Console.WriteLine(FormatMore.Format(format, new object[] { terms }));
+// (A and not B and C) or (not A and B and not C and D)
 ```
 
 ## License

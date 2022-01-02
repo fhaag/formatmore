@@ -76,6 +76,14 @@ namespace FormatMoreUtilities
 				Options = Enumerable.Range(0, optionKeys.Captures.Count)
 					.Select(optionIndex => (Key: optionKeys.Captures[optionIndex].Value, Value: optionValues.Captures[optionIndex].Value))
 					.GroupBy(pair => pair.Key).ToDictionary(g => g.Key[0], g => g.Select(p => p.Value).ToArray());
+
+				_itemTexts = new Lazy<(string BeforeItemText, string AfterItemText)>(() =>
+				{
+					Options.TryGetValue('b', out var beforeValues);
+					Options.TryGetValue('a', out var afterValues);
+
+					return (beforeValues?[0] ?? "", afterValues?[0] ?? "");
+				});
 			}
 
 			public int? Count { get; }
@@ -122,6 +130,10 @@ namespace FormatMoreUtilities
 					return "";
 				}
 			}
+
+			private readonly Lazy<(string BeforeItemText, string AfterItemText)> _itemTexts;
+
+			public (string BeforeItemText, string AfterItemText) ItemTexts => _itemTexts.Value;
 
 			private enum LengthCondition : byte
 			{
@@ -327,9 +339,9 @@ namespace FormatMoreUtilities
 						if (arg is System.Collections.IEnumerable enumerableArg)
 						{
 							var itemFormat = "{0"
-							+ (formatInfo.Alignment != null ? "," + formatInfo.Alignment : "")
-							+ (formatInfo.Format != null ? ":" + formatInfo.Format : "")
-							+ "}";
+								+ (formatInfo.Alignment != null ? "," + formatInfo.Alignment : "")
+								+ (formatInfo.Format != null ? ":" + formatInfo.Format : "")
+								+ "}";
 
 							var totalCount = enumerableArg.Cast<object>().Count();
 							var sb = new StringBuilder();
@@ -355,7 +367,7 @@ namespace FormatMoreUtilities
 										return FormatList(item, listFormatIndex + 1);
 									}
 									return string.Format(provider, itemFormat, item);
-								}).ToArray();
+								}).Select(formattedItem => listFormatInfo.ItemTexts.BeforeItemText + formattedItem + listFormatInfo.ItemTexts.AfterItemText).ToArray();
 
 								if (addMoreMarker)
 								{

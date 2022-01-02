@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 Florian Haag
+Copyright (c) 2021, 2022 Florian Haag
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -63,4 +63,11 @@ using FormatMoreUtilities;
 	Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(2) }));
 	Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(3) }));
 	Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take(4) }));
+}
+
+{
+	var format = "{0[d or |b(|a)][d and ]}";
+	var terms = new[] { new[] { "A", "not B", "C" }, new[] { "not A", "B", "not C", "D" } };
+
+	Console.WriteLine(FormatMore.Format(format, new object[] { terms }));
 }

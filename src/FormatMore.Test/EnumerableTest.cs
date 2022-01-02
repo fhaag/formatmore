@@ -186,5 +186,11 @@ namespace FormatMoreUtilities.Test
 
 		[Fact]
 		public void TestTwoOrThreeDimensions() => TestInput("n/abcxydefgh _ x/m", "{0[d _ ][d/][dxy]?}", new object[] { new[] { new object[] { 'n', new[] { "abc", "defgh" } }, new object[] { 'x', 'm' } } });
+
+		[Fact]
+		public void TestBeforeItemText() => TestInput("<f<B<e<a<V", "{0[b<]}", new object[] { fiveLetters });
+
+		[Fact]
+		public void TestAfterItemText() => TestInput("f>>B>>e>>a>>V>>", "{0[a>>]}", new object[] { fiveLetters });
 	}
 }

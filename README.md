@@ -159,7 +159,7 @@ Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take
 
 ### Logical Formula in DNF
 
-```
+```csharp
 var format = "{0[d or |b(|a)][d and ]}";
 var terms = new[] { new[] { "A", "not B", "C" }, new[] { "not A", "B", "not C", "D" } };
 

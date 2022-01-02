@@ -13,7 +13,11 @@ using FormatMoreUtilities;
 
 (or the appropriate equivalent command in your language of choice) to your file.
 
-Invoke `FormatMore.Format` instead of `string.Format`.
+Then, invoke `FormatMore.Format` to format strings.
+Have a look at the examples further down in this file for some samples of the extended format string features, as well as the full syntax specification in the next section.
+The `FormatMore.Sample` and FormatMore.Test` projects can also provide some insight.
+
+Any format strings usable with `string.Format` can also be passed to `FormatMore.Format`.
 
 ## Full Syntax Specification
 
@@ -158,6 +162,9 @@ Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take
 ```
 
 ### Logical Formula in DNF
+
+The `b` and `a` options are used to insert brackets around subterms.
+The format string makes use of two list format specifications to format the two nested levels of enumerables.
 
 ```csharp
 var format = "{0[d or |b(|a)][d and ]}";

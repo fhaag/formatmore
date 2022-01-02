@@ -35,6 +35,8 @@ It is defined as follows:
 - It ends with a closing square bracket `]`.
 - It may be followed by an optional question mark `?` to indicate that list formatting is optional. In this case, non-enumerable argument values will be formatted as specified while ignoring the list formatting options. (Without the optional marker, applying list formatting options to non-enumerable argument values will cause a `FormatException`.)
 
+Multiple list format elements may be used to format nested enumerables.
+
 ### Item Count
 
 If the item count is specified as a single integer number, it indicates the maximum number of items to output.

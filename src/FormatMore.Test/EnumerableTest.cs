@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 Florian Haag
+Copyright (c) 2021, 2022 Florian Haag
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -177,5 +177,14 @@ namespace FormatMoreUtilities.Test
 
 		[Fact]
 		public void TestOptionalNoEnumParam() => TestInput("42", CultureInfo.InvariantCulture, "{0[]?}", 42);
+
+		[Fact]
+		public void TestSimpleTwoDimensions() => TestInput("a", "{0[][]}", new object[] { new[] { new[] { 'a' } } });
+
+		[Fact]
+		public void TestTwoDimensions() => TestInput("5-8+2-1-3", CultureInfo.InvariantCulture, "{0[d+][d-]}", new object[] { new[] { new[] { 5, 8 }, new[] { 2, 1, 3 } } });
+
+		[Fact]
+		public void TestTwoOrThreeDimensions() => TestInput("n/abcxydefgh _ x/m", "{0[d _ ][d/][dxy]?}", new object[] { new[] { new object[] { 'n', new[] { "abc", "defgh" } }, new object[] { 'x', 'm' } } });
 	}
 }

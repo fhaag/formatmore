@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2021 Florian Haag
+Copyright (c) 2021, 2022 Florian Haag
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,23 +34,21 @@ namespace FormatMoreUtilities
 	/// </summary>
 	public static class FormatMore
 	{
+		private const string ListFormatPatternText = @"\[(?:[0-9]+(?:\.\.[0-9]+)?)?(?:(?:\||(?<=\[))[^|\]0-9](?:(?:[^|\]]|\|\||\]\])*))*\]\??";
+
+		private static readonly Regex ListFormatPattern =
+			new Regex(@"^(?<listFormatting>\[(?:(?<count>[0-9]+)(?:\.\.(?<maxCount>[0-9]+))?)?(?:(?:\||(?<=\[))(?<optionKey>[^|\]0-9])(?<optionValue>(?:[^|\]]|\|\||\]\])*))*\](?<listModifier>\?)?)$");
+
 		private static readonly Regex FormatItemPattern =
-			new Regex(@"\{(?<index>[0-9]+)(?<listFormatting>\[(?:(?<count>[0-9]+)(?:\.\.(?<maxCount>[0-9]+))?)?(?:(?:\||(?<=\[))(?<optionKey>[^|\]0-9])(?<optionValue>(?:[^|\]]|\|\||\]\])*))*\](?<listModifier>\?)?)?(?:,(?<alignment>[+-]?[0-9]+))?(?:\:(?<format>(?:[^}]|\}\})*))?\}");
+			new Regex(@"\{(?<index>[0-9]+)(?<listFormatting>" + ListFormatPatternText + @")*(?:,(?<alignment>[+-]?[0-9]+))?(?:\:(?<format>(?:[^}]|\}\})*))?\}");
 
 		private static readonly Regex LengthBasedArgumentValuePattern =
 			new Regex(@"^(?<index>[+-]?[0-9]+)(?:/(?<lengthCondition>[=<>])?(?<lengthConditionOperand>[0-9]+))?\=(?<value>.*)$");
 
-		private sealed class EnhancedFormatItemInfo
+		private sealed class ListFormatInfo
 		{
-			public EnhancedFormatItemInfo(Match source)
+			public ListFormatInfo(Match source)
 			{
-				if (source == null)
-				{
-					throw new ArgumentNullException(nameof(source));
-				}
-
-				Index = int.Parse(source.Groups["index"].Value, InvariantCulture);
-
 				var modifierMatch = source.Groups["listModifier"];
 				if (modifierMatch.Success)
 				{
@@ -68,12 +66,6 @@ namespace FormatMoreUtilities
 					throw new FormatException("The maximum number of items to display must not be less than the standard number of items to display.");
 				}
 
-				var alignmentMatch = source.Groups["alignment"];
-				Alignment = alignmentMatch.Success ? alignmentMatch.Value : null;
-
-				var formatMatch = source.Groups["format"];
-				Format = formatMatch.Success ? formatMatch.Value : null;
-
 				var optionKeys = source.Groups["optionKey"];
 				var optionValues = source.Groups["optionValue"];
 				if (optionKeys.Captures.Count != optionValues.Captures.Count)
@@ -86,15 +78,10 @@ namespace FormatMoreUtilities
 					.GroupBy(pair => pair.Key).ToDictionary(g => g.Key[0], g => g.Select(p => p.Value).ToArray());
 			}
 
-			public int Index { get; }
-
 			public int? Count { get; }
 
 			public int? MaxCount { get; }
 
-			public string? Alignment { get; }
-
-			public string? Format { get; }
 
 			public bool IsOptional { get; }
 
@@ -254,6 +241,42 @@ namespace FormatMoreUtilities
 			}
 		}
 
+		private sealed class EnhancedFormatItemInfo
+		{
+			public EnhancedFormatItemInfo(Match source)
+			{
+				Index = int.Parse(source.Groups["index"].Value, InvariantCulture);
+
+				var alignmentMatch = source.Groups["alignment"];
+				Alignment = alignmentMatch.Success ? alignmentMatch.Value : null;
+
+				var formatMatch = source.Groups["format"];
+				Format = formatMatch.Success ? formatMatch.Value : null;
+
+				var listFormatGroup = source.Groups["listFormatting"];
+				if (listFormatGroup.Success)
+				{
+					ListFormat = listFormatGroup.Captures.Select(c =>
+					{
+						var match = ListFormatPattern.Match(c.Value);
+						if (!match.Success)
+						{
+							throw new FormatException();
+						}
+						return new ListFormatInfo(match);
+					}).ToArray();
+				}
+			}
+
+			public int Index { get; }
+
+			public string? Alignment { get; }
+
+			public string? Format { get; }
+
+			public IReadOnlyList<ListFormatInfo>? ListFormat { get; }
+		}
+
 		/// <summary>
 		/// Formats a string.
 		/// </summary>
@@ -273,15 +296,21 @@ namespace FormatMoreUtilities
 		/// <exception cref="FormatException">The provided format string was invalid.</exception>
 		public static string Format(IFormatProvider? provider, string format, params object[] args)
 		{
-			var preprocessedFormat = new StringBuilder(format.Length);
+			StringBuilder preprocessedFormat = new StringBuilder(format.Length);
 
 			var preprocessedArgs = new List<object?>(args);
 
 			void PreprocessFormatItem(Match formatItem)
 			{
-				if (formatItem.Groups["listFormatting"].Success)
+				var listFormattingGroup = formatItem.Groups["listFormatting"];
+				if (listFormattingGroup.Success)
 				{
-					var formatInfo = new EnhancedFormatItemInfo(formatItem);
+					EnhancedFormatItemInfo formatInfo = new EnhancedFormatItemInfo(formatItem);
+
+					if (formatInfo.ListFormat == null)
+					{
+						throw new InvalidOperationException("The list format component was unexpectedly null.");
+					}
 
 					if (formatInfo.Index < 0 || formatInfo.Index >= args.Length)
 					{
@@ -290,77 +319,92 @@ namespace FormatMoreUtilities
 							formatInfo.Index, args.Length));
 					}
 
-					if (args[formatInfo.Index] is System.Collections.IEnumerable enumerableArg)
+					// TODO: return (string Value, bool IsFormatString)
+					string FormatList(object? arg, int listFormatIndex)
 					{
-						var itemFormat = "{0"
+						ListFormatInfo listFormatInfo = formatInfo.ListFormat[listFormatIndex];
+
+						if (arg is System.Collections.IEnumerable enumerableArg)
+						{
+							var itemFormat = "{0"
 							+ (formatInfo.Alignment != null ? "," + formatInfo.Alignment : "")
 							+ (formatInfo.Format != null ? ":" + formatInfo.Format : "")
 							+ "}";
 
-						var totalCount = enumerableArg.Cast<object>().Count();
-						var sb = new StringBuilder();
+							var totalCount = enumerableArg.Cast<object>().Count();
+							var sb = new StringBuilder();
 
-						if (totalCount <= 0)
-						{
-							sb.Append(formatInfo.EmptyPlaceholder);
-						}
-						else
-						{
-							var relevantItems = enumerableArg.Cast<object>().Take(formatInfo.MaxCount.HasValue ? formatInfo.MaxCount.Value + 1 : int.MaxValue).ToArray();
-
-							var addMoreMarker = false;
-							if (formatInfo.MaxCount.HasValue && relevantItems.Length > formatInfo.MaxCount)
+							if (totalCount <= 0)
 							{
-								relevantItems = relevantItems.Take(formatInfo.Count ?? formatInfo.MaxCount.Value).ToArray();
-								addMoreMarker = true;
+								sb.Append(listFormatInfo.EmptyPlaceholder);
 							}
-							var formattedItems = relevantItems.Select(item => string.Format(provider, itemFormat, item)).ToArray();
-
-							if (addMoreMarker)
+							else
 							{
-								var remainderItem = formatInfo.RemainderItem;
-								if (remainderItem != null)
+								var relevantItems = enumerableArg.Cast<object>().Take(listFormatInfo.MaxCount.HasValue ? listFormatInfo.MaxCount.Value + 1 : int.MaxValue).ToArray();
+
+								var addMoreMarker = false;
+								if (listFormatInfo.MaxCount.HasValue && relevantItems.Length > listFormatInfo.MaxCount)
 								{
-									formattedItems = formattedItems.Append(remainderItem).ToArray();
+									relevantItems = relevantItems.Take(listFormatInfo.Count ?? listFormatInfo.MaxCount.Value).ToArray();
+									addMoreMarker = true;
+								}
+								var formattedItems = relevantItems.Select(item =>
+								{
+									if (listFormatIndex + 1 < formatInfo.ListFormat.Count)
+									{
+										return FormatList(item, listFormatIndex + 1);
+									}
+									return string.Format(provider, itemFormat, item);
+								}).ToArray();
+
+								if (addMoreMarker)
+								{
+									var remainderItem = listFormatInfo.RemainderItem;
+									if (remainderItem != null)
+									{
+										formattedItems = formattedItems.Append(remainderItem).ToArray();
+									}
+								}
+
+								var delimiters = listFormatInfo.GetDelimiters(formattedItems.Length, totalCount);
+
+								for (var i = 0; i < formattedItems.Length; i++)
+								{
+									sb.Append(formattedItems[i]);
+									if (i < delimiters.Length)
+									{
+										sb.Append(delimiters[i]);
+									}
+								}
+								if (addMoreMarker)
+								{
+									sb.Append(listFormatInfo.MoreItemsMarker);
 								}
 							}
 
-							var delimiters = formatInfo.GetDelimiters(formattedItems.Length, totalCount);
-
-							for (var i = 0; i < formattedItems.Length; i++)
-							{
-								sb.Append(formattedItems[i]);
-								if (i < delimiters.Length)
-								{
-									sb.Append(delimiters[i]);
-								}
-							}
-							if (addMoreMarker)
-							{
-								sb.Append(formatInfo.MoreItemsMarker);
-							}
-						}
-
-						preprocessedFormat.Append("{" + preprocessedArgs.Count.ToString(InvariantCulture) + "}");
-						preprocessedArgs.Add(sb.ToString());
-					}
-					else
-					{
-						if (formatInfo.IsOptional)
-						{
-							preprocessedFormat.Append("{"
-								+ formatInfo.Index.ToString(InvariantCulture)
-								+ (formatInfo.Alignment != null ? "," + formatInfo.Alignment : "")
-								+ (formatInfo.Format != null ? ":" + formatInfo.Format : "")
-								+ "}");
+							return sb.ToString();
 						}
 						else
 						{
-							throw new FormatException(string.Format(InvariantCulture,
-								"Argument {0} cannot be converted to {1}.",
-								formatInfo.Index, typeof(System.Collections.IEnumerable)));
+							if (listFormatInfo.IsOptional)
+							{
+								return string.Format(provider, "{0"
+									+ (formatInfo.Alignment != null ? "," + formatInfo.Alignment : "")
+									+ (formatInfo.Format != null ? ":" + formatInfo.Format : "")
+									+ "}", arg);
+							}
+							else
+							{
+								throw new FormatException(string.Format(InvariantCulture,
+									"Argument {0} cannot be converted to {1}.",
+									formatInfo.Index, typeof(System.Collections.IEnumerable)));
+							}
 						}
 					}
+
+					var formattedList = FormatList(args[formatInfo.Index], 0);
+					preprocessedFormat.Append("{" + preprocessedArgs.Count.ToString(InvariantCulture) + "}");
+					preprocessedArgs.Add(formattedList);
 				}
 				else
 				{

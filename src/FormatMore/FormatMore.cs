@@ -45,6 +45,8 @@ namespace FormatMoreUtilities
 		private static readonly Regex LengthBasedArgumentValuePattern =
 			new Regex(@"^(?<index>[+-]?[0-9]+)(?:/(?<lengthCondition>[=<>])?(?<lengthConditionOperand>[0-9]+))?\=(?<value>.*)$");
 
+		private static readonly Regex OptionReplacementPattern = new Regex(@"([\|\]])\1");
+
 		private sealed class ListFormatInfo
 		{
 			public ListFormatInfo(Match source)
@@ -75,7 +77,7 @@ namespace FormatMoreUtilities
 
 				Options = Enumerable.Range(0, optionKeys.Captures.Count)
 					.Select(optionIndex => (Key: optionKeys.Captures[optionIndex].Value, Value: optionValues.Captures[optionIndex].Value))
-					.GroupBy(pair => pair.Key).ToDictionary(g => g.Key[0], g => g.Select(p => p.Value).ToArray());
+					.GroupBy(pair => pair.Key).ToDictionary(g => g.Key[0], g => g.Select(p => OptionReplacementPattern.Replace(p.Value, m => m.Groups[1].Value)).ToArray());
 
 				_itemTexts = new Lazy<(string BeforeItemText, string AfterItemText)>(() =>
 				{
@@ -331,7 +333,6 @@ namespace FormatMoreUtilities
 							formatInfo.Index, args.Length));
 					}
 
-					// TODO: return (string Value, bool IsFormatString)
 					string FormatList(object? arg, int listFormatIndex)
 					{
 						ListFormatInfo listFormatInfo = formatInfo.ListFormat[listFormatIndex];

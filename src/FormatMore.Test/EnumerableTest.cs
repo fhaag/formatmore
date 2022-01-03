@@ -192,5 +192,11 @@ namespace FormatMoreUtilities.Test
 
 		[Fact]
 		public void TestAfterItemText() => TestInput("f>>B>>e>>a>>V>>", "{0[a>>]}", new object[] { fiveLetters });
+
+		[Fact]
+		public void TestPipeSymbolInOptions() => TestInput("a:|b:", "{0[d|||a:]}", new object[] { "ab" });
+
+		[Fact]
+		public void TestClosingBracketInOptions() => TestInput("a:]b:", "{0[d]]|a:]}", new object[] { "ab" });
 	}
 }

@@ -5,6 +5,8 @@ A library that offers an alternative to the String.Format method from .NET with 
 ## Quick Start
 
 Download and reference `FormatMore.dll`.
+You can also find it on [NuGet](https://www.nuget.org/packages/FormatMore/).
+
 Add
 
 ```csharp

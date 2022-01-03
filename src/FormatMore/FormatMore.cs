@@ -32,11 +32,13 @@ namespace FormatMoreUtilities
 	/// <summary>
 	/// Provides utility functions for formatting strings with values.
 	/// </summary>
-	public static class FormatMore
+	public static partial class FormatMore
 	{
 		private const string ListFormatPatternText = @"\[(?:[0-9]+(?:\.\.[0-9]+)?)?(?:(?:\||(?<=\[))[^|\]0-9](?:(?:[^|\]]|\|\||\]\])*))*\]\??";
 
-		private static readonly Regex ListFormatPattern =
+		private static readonly Regex ListFormatPattern = new Regex(ListFormatPatternText);
+
+		private static readonly Regex ListFormatStructurePattern =
 			new Regex(@"^(?<listFormatting>\[(?:(?<count>[0-9]+)(?:\.\.(?<maxCount>[0-9]+))?)?(?:(?:\||(?<=\[))(?<optionKey>[^|\]0-9])(?<optionValue>(?:[^|\]]|\|\||\]\])*))*\](?<listModifier>\?)?)$");
 
 		private static readonly Regex FormatItemPattern =
@@ -92,7 +94,6 @@ namespace FormatMoreUtilities
 
 			public int? MaxCount { get; }
 
-
 			public bool IsOptional { get; }
 
 			public IReadOnlyDictionary<char, string[]> Options { get; }
@@ -130,6 +131,18 @@ namespace FormatMoreUtilities
 						return values[0];
 					}
 					return "";
+				}
+			}
+
+			public string? ReplaceWithPreset
+			{
+				get
+				{
+					if (Options.TryGetValue('p', out var values))
+					{
+						return values[0];
+					}
+					return null;
 				}
 			}
 
@@ -270,14 +283,29 @@ namespace FormatMoreUtilities
 				var listFormatGroup = source.Groups["listFormatting"];
 				if (listFormatGroup.Success)
 				{
-					ListFormat = listFormatGroup.Captures.Select(c =>
+					ListFormat = listFormatGroup.Captures.SelectMany(c =>
 					{
-						var match = ListFormatPattern.Match(c.Value);
+						var match = ListFormatStructurePattern.Match(c.Value);
 						if (!match.Success)
 						{
-							throw new FormatException();
+							throw new FormatException("Invalid list format settings.");
 						}
-						return new ListFormatInfo(match);
+
+						var lfi = new ListFormatInfo(match);
+						var replaceWithPreset = lfi.ReplaceWithPreset;
+						if (replaceWithPreset != null)
+						{
+							if (_listFormatPresets.TryGetValue(replaceWithPreset, out var presetSettings))
+							{
+								return presetSettings;
+							}
+							else
+							{
+								throw new FormatException($"Unknown list format preset {replaceWithPreset} invoked.");
+							}
+						}
+
+						return new[] { lfi };
 					}).ToArray();
 				}
 			}

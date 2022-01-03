@@ -32,21 +32,8 @@ using Xunit;
 
 namespace FormatMoreUtilities.Test
 {
-	public sealed class EnumerableTest
+	public sealed class EnumerableTest : FormattingTestBase
 	{
-		#region infrastructure
-
-		private void TestInput(string expected, string format, params object[] args) => TestInput(expected, null, format, args);
-
-		private void TestInput(string expected, IFormatProvider? provider, string format, params object[] args)
-		{
-			var formatMoreResult = FormatMore.Format(provider, format, args);
-
-			formatMoreResult.Should().Be(expected);
-		}
-
-		#endregion
-
 		#region data
 
 		private static readonly char[] fiveLetters = new[] { 'f', 'B', 'e', 'a', 'V' };

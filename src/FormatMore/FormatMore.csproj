@@ -20,4 +20,10 @@
     <WarningsNotAsErrors>612;618</WarningsNotAsErrors>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Update="FormatMore.Presets.cs">
+      <DependentUpon>FormatMore.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

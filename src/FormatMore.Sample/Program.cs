@@ -71,3 +71,17 @@ using FormatMoreUtilities;
 
 	Console.WriteLine(FormatMore.Format(format, new object[] { terms }));
 }
+
+{
+	FormatMore.RegisterListFormatPreset("CommaList", "[d, |D0/2= and |D-1=, and ]");
+
+	var format = "The proposal was supported by {0[pCommaList]}, while it was rejected by {1[pCommaList]}.";
+
+	var proNames = new[] { "Sue", "Sam", "Sally", "Sarah" };
+	var conNames = new[] { "Dave", "Dorian", "Donald", "Dora" };
+
+	Console.WriteLine(FormatMore.Format(format, proNames.Take(1), conNames.Take(1)));
+	Console.WriteLine(FormatMore.Format(format, proNames.Take(2), conNames.Take(2)));
+	Console.WriteLine(FormatMore.Format(format, proNames.Take(3), conNames.Take(3)));
+	Console.WriteLine(FormatMore.Format(format, proNames, conNames));
+}

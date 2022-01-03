@@ -1,6 +1,6 @@
 # FormatMore
 
-A library that offers a more versatile alternative to the String.Format method from .NET.
+A library that offers an alternative to the String.Format method from .NET with added support for formatting lists of items.
 
 ## Quick Start
 
@@ -65,6 +65,7 @@ The following table lists additionally supported arguments along with their iden
 | `D` | Specifies an individual delimiter between items. Use *indexed values* (see below) to indicate which delimiter you would like to define, with the index referring to the delimiters between actually output items.<br />You may specify several `D` arguments to assign delimiters for different indexes. |
 | `e` | If the enumerable contains no items, the alternative text from this argument will be used instead. |
 | `m` | If the enumerable contains more items than can be displayed as per *Item Count*, this string will be appended after the items. |
+| `p` | Replaces the list format with settings from a preset. |
 | `r` | If the enumerable contains more items than can be displayed as per *Item Count*, this string will be appended as an additional item representing the remainder of the items. |
 
 If any of these arguments appears multiple times, they will be considered in their order of occurrence.
@@ -80,6 +81,26 @@ In there:
 - *index* is an integer number. Count the index from zero upwards to reference indexes from the start of the collection, and from `-1` downwards to start from the end.
 - *condition* is an optional condition that checks the total number of items available in the source enumerable. The condition consists of one of the operators `<`, `>`, or `=` (if no operator is specified, `=` will be assumed), followed by an integer number that is compared to the total number of items.
 - *value* is the resulting value for the specified index if the condition is met.
+
+### Presets
+
+It is possible to store certain frequently occurring list formatting instructions as reusable presets.
+For this purpose, invoke the static `RegisterListFormatPreset` method:
+
+```csharp
+FormatMore.RegisterListFormatPreset("CommaList", "[d, |D0/2= and |D-1=, and ]");
+```
+
+You can then reference this preset in your list formatting settings:
+
+```csharp
+FormatMore.Format(
+  "The proposal was supported by {0[pCommaList]}, while it was rejected by {1[pCommaList]}.",
+  proNames, conNames);
+```
+
+As the specifics of how different types of lists are formatted considerably depend on the display language, the preset formatting can be stored in localization data.
+Individual localized format strings can then be written in a fairly simple manner, by referring to the named preset.
 
 ## Examples
 

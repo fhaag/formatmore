@@ -183,6 +183,9 @@ Console.WriteLine(FormatMore.Format(format, new object[] { formattedAuthors.Take
 // E. Example et al.
 ```
 
+This example also demonstrates that the list formatting focuses on formatting of the actual list rather than its items.
+If you wish to perform further formatting on the individual items, it is adviseable to do this *before* passing them to the `Format` method, as done here by means of some LINQ-based processing.
+
 ### Logical Formula in DNF
 
 The `b` and `a` options are used to insert brackets around subterms.
